@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ai.mapper.ChatHistoryMapper">
+
+    <select id="selectByChatId" resultType="com.ai.entity.ChatHistory">
+        SELECT * FROM chat_history WHERE chat_id = #{chatId} ORDER BY create_time ASC
+    </select>
+
+    <select id="selectDistinctChatIds" resultType="java.lang.String">
+        SELECT chat_id FROM chat_history GROUP BY chat_id ORDER BY MAX(create_time) DESC
+    </select>
+
+</mapper>
