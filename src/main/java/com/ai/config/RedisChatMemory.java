@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
 
     private static final String CHAT_MEMORY_PREFIX = "chat:memory:";
+    private static final int MAX_CONTEXT_SIZE = 20;
     private static final long TTL_HOURS = 24;
     private static final String TYPE_KEY = "@type";
     private static final String TYPE_USER = "user";
@@ -36,28 +37,35 @@ public class RedisChatMemory implements ChatMemory {
     @Override
     public void add(String conversationId, List<Message> messages) {
         String key = CHAT_MEMORY_PREFIX + conversationId;
-        List<Message> existingMessages = get(conversationId);
-        existingMessages.addAll(messages);
-
-        try {
-            String json = serializeMessages(existingMessages);
-            redisTemplate.opsForValue().set(key, json, TTL_HOURS, TimeUnit.HOURS);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize messages", e);
+        
+        for (Message message : messages) {
+            try {
+                String json = serializeMessage(message);
+                if (json != null) {
+                    redisTemplate.opsForList().rightPush(key, json);
+                }
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize message", e);
+            }
         }
+        
+        redisTemplate.expire(key, TTL_HOURS, TimeUnit.HOURS);
+        
+        trimToMaxSize(key);
     }
 
     @Override
     public List<Message> get(String conversationId) {
         String key = CHAT_MEMORY_PREFIX + conversationId;
-        String json = redisTemplate.opsForValue().get(key);
-
-        if (json == null) {
+        
+        List<String> jsonMessages = redisTemplate.opsForList().range(key, -MAX_CONTEXT_SIZE, -1);
+        
+        if (jsonMessages == null || jsonMessages.isEmpty()) {
             return new ArrayList<>();
         }
 
         try {
-            return deserializeMessages(json);
+            return deserializeMessages(jsonMessages);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to deserialize messages", e);
         }
@@ -69,31 +77,35 @@ public class RedisChatMemory implements ChatMemory {
         redisTemplate.delete(key);
     }
 
-    private String serializeMessages(List<Message> messages) throws JsonProcessingException {
-        List<Map<String, String>> messageMaps = new ArrayList<>();
-        for (Message message : messages) {
-            Map<String, String> map = new HashMap<>();
-            if (message instanceof UserMessage) {
-                map.put(TYPE_KEY, TYPE_USER);
-            } else if (message instanceof AssistantMessage) {
-                map.put(TYPE_KEY, TYPE_ASSISTANT);
-            } else {
-                continue;
-            }
-            map.put(CONTENT_KEY, message.getText());
-            messageMaps.add(map);
+    private void trimToMaxSize(String key) {
+        Long size = redisTemplate.opsForList().size(key);
+        if (size != null && size > MAX_CONTEXT_SIZE) {
+            redisTemplate.opsForList().trim(key, size - MAX_CONTEXT_SIZE, -1);
         }
-        return objectMapper.writeValueAsString(messageMaps);
     }
 
-    private List<Message> deserializeMessages(String json) throws JsonProcessingException {
-        List<Map<String, String>> messageMaps = objectMapper.readValue(
-            json, 
-            new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, String>>>() {}
-        );
-        
+    private String serializeMessage(Message message) throws JsonProcessingException {
+        Map<String, String> map = new HashMap<>();
+        if (message instanceof UserMessage) {
+            map.put(TYPE_KEY, TYPE_USER);
+        } else if (message instanceof AssistantMessage) {
+            map.put(TYPE_KEY, TYPE_ASSISTANT);
+        } else {
+            return null;
+        }
+        map.put(CONTENT_KEY, message.getText());
+        return objectMapper.writeValueAsString(map);
+    }
+
+    private List<Message> deserializeMessages(List<String> jsonMessages) throws JsonProcessingException {
         List<Message> messages = new ArrayList<>();
-        for (Map<String, String> map : messageMaps) {
+        
+        for (String json : jsonMessages) {
+            Map<String, String> map = objectMapper.readValue(
+                json, 
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {}
+            );
+            
             String type = map.get(TYPE_KEY);
             String content = map.get(CONTENT_KEY);
             
