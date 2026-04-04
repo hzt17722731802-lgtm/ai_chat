@@ -1,19 +1,15 @@
-package com.ai.controller;
+package com.ai.controller.chat;
 
 import com.ai.repository.ChatHistoryRepository;
 import com.ai.repository.MySqlChatHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 
 @RequiredArgsConstructor

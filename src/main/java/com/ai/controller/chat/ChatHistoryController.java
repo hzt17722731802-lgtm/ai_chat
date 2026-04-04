@@ -1,4 +1,4 @@
-package com.ai.controller;
+package com.ai.controller.chat;
 
 import com.ai.entity.ChatHistory;
 import com.ai.entity.vo.MessageVO;

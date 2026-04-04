@@ -2,6 +2,9 @@ package com.ai.config;
 
 
 import com.ai.repository.MySqlChatHistoryRepository;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -32,5 +35,15 @@ public class CommonConfiguration {
     public RedisChatMemory redisChatMemory(org.springframework.data.redis.core.RedisTemplate<String, String> redisTemplate,
                                            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
         return new RedisChatMemory(redisTemplate, objectMapper);
+    }
+
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        PaginationInnerInterceptor paginationInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
+        paginationInterceptor.setOverflow(false);
+        paginationInterceptor.setMaxLimit(500L);
+        interceptor.addInnerInterceptor(paginationInterceptor);
+        return interceptor;
     }
 }
