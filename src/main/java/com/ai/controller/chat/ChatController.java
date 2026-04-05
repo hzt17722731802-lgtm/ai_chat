@@ -31,7 +31,7 @@ public class ChatController {
 
         String finalChatId = chatId;
         
-        chatHistoryRepository.save("chat", finalChatId);
+        //chatHistoryRepository.save("chat", finalChatId);
 
         UserMessage userMessage = new UserMessage(prompt);
         mySqlChatHistoryRepository.saveMessage(finalChatId, "user", prompt);

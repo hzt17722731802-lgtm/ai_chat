@@ -15,6 +15,7 @@ spring:
       database: 0
       timeout: 5000ms
 
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/ai_chat?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
@@ -25,6 +26,11 @@ spring:
     configuration:
       map-underscore-to-camel-case: true
       log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: 123qwertyuiop
 logging:
   level:
     org.springframework.ai.chat.client.advisor: debug
