@@ -23,7 +23,6 @@ public class CommonConfiguration {
         return ChatClient
                 .builder(model)
                 .defaultAdvisors(
-                        new SimpleLoggerAdvisor(),
                         MessageChatMemoryAdvisor.builder(chatMemory).build()
                 ).build();
     }

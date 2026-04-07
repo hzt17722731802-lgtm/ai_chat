@@ -82,7 +82,7 @@ public class GraphQueryService {
     
     public GraphDataVO getDiseaseGraph(String diseaseName) {
         try {
-            String query = "MATCH (d:Disease {name: $diseaseName})-[r]-(related) " +
+            String query = "MATCH (d:Disease {name: $diseaseName})-[r]->(related) " +
                           "RETURN id(d) as sourceId, id(related) as targetId, type(r) as type, " +
                           "d.name as sourceName, related.name as targetName, labels(related)[0] as targetType";
             
@@ -104,7 +104,7 @@ public class GraphQueryService {
                 .map(map -> (Map<String, Object>) map)
                 .collect(Collectors.toList());
             
-            log.info("查询到疾病 '{}' 的关联关系数量: {}", diseaseName, relationships.size());
+            log.info("查询到疾病 '{}' 的出边关联关系数量: {}", diseaseName, relationships.size());
             
             Set<GraphNodeVO> nodes = new HashSet<>();
             List<GraphLinkVO> links = new ArrayList<>();

@@ -33,5 +33,5 @@ spring:
       password: 123qwertyuiop
 logging:
   level:
-    org.springframework.ai.chat.client.advisor: debug
+    org.springframework.ai.chat.client.advisor: warn
     com.ai: debug
