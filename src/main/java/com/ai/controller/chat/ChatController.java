@@ -1,6 +1,6 @@
 package com.ai.controller.chat;
 
-import com.ai.entity.vo.IntentRecognitionResult;
+import com.ai.entity.IntentRecognitionResult;
 import com.ai.repository.ChatHistoryRepository;
 import com.ai.repository.MySqlChatHistoryRepository;
 import com.ai.service.IntentRecognitionService;

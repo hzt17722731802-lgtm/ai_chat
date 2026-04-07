@@ -1,4 +1,4 @@
-package com.ai.entity.vo;
+package com.ai.entity;
 
 import lombok.Data;
 import java.util.List;

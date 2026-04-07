@@ -1,7 +1,6 @@
 package com.ai.service;
 
-import com.ai.entity.vo.IntentRecognitionResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ai.entity.IntentRecognitionResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class IntentRecognitionService {
     
     private static final String OLLAMA_API_URL = "http://localhost:11434/api/generate";
     private static final String MODEL_NAME = "medic_qwen0.6b";
-    private static final float TEMPERATURE = 0.3f;
+    private static final float TEMPERATURE = 0.2f;
 
     public IntentRecognitionResult recognizeIntent(String userInput) {
         try {
@@ -54,7 +53,8 @@ public class IntentRecognitionService {
             if (response != null && response.containsKey("response")) {
                 String jsonResponse = (String) response.get("response");
                 log.info("Ollama 原始响应: {}", jsonResponse);
-                
+
+                // 解析JSON
                 IntentRecognitionResult result = parseResponse(jsonResponse);
                 return result;
             }
@@ -68,8 +68,36 @@ public class IntentRecognitionService {
         }
     }
 
+    /**
+     * 构建意图识别的提示词
+     *
+     * @param userInput 用户输入的原始文本
+     * @return 格式化后的提示词字符串
+     */
     private String buildPrompt(String userInput) {
         return String.format(
+            "你是一个医疗对话助手。请从患者的问题中识别意图（使用中文输出），并抽取出所有医疗相关实体（症状、检查、药品、治疗、科室），以JSON格式返回。 /no_think\n" +
+            "**输出要求：**\n\n" +
+            "- 只输出一个 JSON 对象，不要有任何额外文字、Markdown 或解释。\n" +
+            "- JSON 格式：{\"intent\": \"意图\", \"entities\": [{\"type\": \"类型\", \"value\": \"值\"}]}\n" +
+            "- 意图识别使用中文，意图类型有：描述症状、描述已有检查和治疗、询问所需检查、询问用药建议、描述基本信息、询问并发疾病、询问医疗建议、询问注意事项、询问病因、其他。\n" +
+            "- 实体类型有：症状、检查、药品、治疗、科室。\n" +
+            "- 如果用户没有提到任何实体，entities 为空数组。\n\n" +
+            "**示例：**\n\n" +
+            "患者问题：我最近咳嗽、发烧，喉咙痛\n" +
+            "{\"intent\": \"描述症状\", \"entities\": [{\"type\": \"症状\", \"value\": \"咳嗽\"}, {\"type\": \"症状\", \"value\": \"发烧\"}, {\"type\": \"症状\", \"value\": \"喉咙痛\"}]}\n\n" +
+            "患者问题：糖尿病要做什么检查\n" +
+            "{\"intent\": \"询问所需检查\", \"entities\": [{\"type\": \"症状\", \"value\": \"糖尿病\"}]}\n\n" +
+            "患者问题：肺炎应该吃什么药？\n" +
+            "{\"intent\": \"询问用药建议\", \"entities\": [{\"type\": \"症状\", \"value\": \"肺炎\"}]}\n\n" +
+            "患者问题：糖尿病有什么并发症？\n" +
+            "{\"intent\": \"询问并发疾病\", \"entities\": [{\"type\": \"症状\", \"value\": \"糖尿病\"}]}\n\n" +
+            "患者问题：肺炎有什么并发疾病？\n" +
+            "{\"intent\": \"询问并发疾病\", \"entities\": [{\"type\": \"症状\", \"value\": \"肺炎\"}]}\n\n" +
+            "患者问题：神经内科属于什么科室？\n" +
+            "{\"intent\": \"询问所属科室\", \"entities\": [{\"type\": \"科室\", \"value\": \"神经内科\"}]}\n\n" +
+            "---\n\n" +
+            "患者问题：%s",
             userInput
         );
     }
