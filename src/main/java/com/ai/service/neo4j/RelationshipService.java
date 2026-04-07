@@ -124,11 +124,11 @@ public class RelationshipService {
     public void deleteRelationship(String startNodeName, String endNodeName, String relationshipType) {
         log.info("开始删除关系: [{}] - {} -> [{}]", startNodeName, relationshipType, endNodeName);
         
-        if (!nodeExistsByName(startNodeName)) {
+        if (nodeNotExistsByName(startNodeName)) {
             throw new BusinessException("起始节点不存在: " + startNodeName);
         }
         
-        if (!nodeExistsByName(endNodeName)) {
+        if (nodeNotExistsByName(endNodeName)) {
             throw new BusinessException("结束节点不存在: " + endNodeName);
         }
         
@@ -171,7 +171,7 @@ public class RelationshipService {
         return exists;
     }
     
-    private boolean nodeExistsByName(String name) {
+    private boolean nodeNotExistsByName(String name) {
         String cypher = "MATCH (n {name: $name}) RETURN count(n) > 0 as exists";
         
         Boolean exists = neo4jClient.query(cypher)

@@ -1,8 +1,11 @@
 package com.ai.controller.chat;
 
+import com.ai.entity.vo.IntentRecognitionResult;
 import com.ai.repository.ChatHistoryRepository;
 import com.ai.repository.MySqlChatHistoryRepository;
+import com.ai.service.IntentRecognitionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/ai")
@@ -23,6 +27,8 @@ public class ChatController {
 
     private final MySqlChatHistoryRepository mySqlChatHistoryRepository;
 
+    private final IntentRecognitionService intentRecognitionService;
+
     @RequestMapping(value = "/chat", produces = "text/html;charset=utf-8")
     public Flux<String> chat(@RequestParam String prompt, @RequestParam(required = false) String chatId){
         if (chatId == null || chatId.isBlank()) {
@@ -31,7 +37,22 @@ public class ChatController {
 
         String finalChatId = chatId;
         
-        //chatHistoryRepository.save("chat", finalChatId);
+        try {
+            IntentRecognitionResult intentResult = intentRecognitionService.recognizeIntent(prompt);
+            
+            log.info("========== 前置意图识别结果 ==========");
+            log.info("用户输入: {}", prompt);
+            log.info("识别意图: {}", intentResult.getIntent());
+            log.info("实体数量: {}", intentResult.getEntities() != null ? intentResult.getEntities().size() : 0);
+            if (intentResult.getEntities() != null && !intentResult.getEntities().isEmpty()) {
+                for (IntentRecognitionResult.Entity entity : intentResult.getEntities()) {
+                    log.info("  实体 - 类型: {}, 值: {}", entity.getType(), entity.getValue());
+                }
+            }
+            log.info("======================================");
+        } catch (Exception e) {
+            log.error("前置意图识别失败", e);
+        }
 
         UserMessage userMessage = new UserMessage(prompt);
         mySqlChatHistoryRepository.saveMessage(finalChatId, "user", prompt);
