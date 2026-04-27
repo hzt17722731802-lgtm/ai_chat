@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -45,7 +46,7 @@ public class ChatHistoryController {
             allMessages.add(vo);
         }
         
-        List<Message> redisMessages = chatMemory.get(chatId);
+       /* List<Message> redisMessages = chatMemory.get(chatId);
         for (Message message : redisMessages) {
             String role;
             if (message instanceof org.springframework.ai.chat.messages.UserMessage) {
@@ -55,19 +56,20 @@ public class ChatHistoryController {
             } else {
                 role = "unknown";
             }
-            
-            boolean exists = allMessages.stream()
+            */
+            /*boolean exists = allMessages.stream()
                 .anyMatch(m -> m.getRole().equals(role) && m.getContent().equals(message.getText()));
             
             if (!exists) {
                 MessageVO vo = new MessageVO();
                 vo.setRole(role);
                 vo.setContent(message.getText());
+                vo.setCreateTime(LocalDateTime.now());
                 allMessages.add(vo);
             }
-        }
+        }*/
         
-        allMessages.sort(Comparator.comparing(MessageVO::getCreateTime));
+        allMessages.sort(Comparator.comparing(MessageVO::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder())));
         
         return allMessages;
     }

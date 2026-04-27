@@ -23,6 +23,9 @@ public class KnowledgeGraphRagService {
     private final DepartmentRepository departmentRepository;
     private final Neo4jClient neo4jClient;
 
+    //最大返回详细疾病数量
+    private static final Integer MAX_DISEASES = 8;
+
     public String buildRagContext(IntentRecognitionResult intentResult) {
         if (intentResult == null || intentResult.getEntities() == null || intentResult.getEntities().isEmpty()) {
             return "";
@@ -120,6 +123,8 @@ public class KnowledgeGraphRagService {
         log.info("处理询问用药意图");
     }
 
+
+
     private void handleSymptomDescription(List<IntentRecognitionResult.Entity> entities,
                                           StringBuilder context, Set<String> processedDiseases) {
         List<String> symptomNames = entities.stream()
@@ -146,18 +151,18 @@ public class KnowledgeGraphRagService {
         if (!diseaseSets.isEmpty()) {
             Set<String> intersectionDiseases = calculateIntersection(diseaseSets);
             if (!intersectionDiseases.isEmpty()) {
-                context.append("【症状匹配】同时包含症状 ")
-                       .append(String.join("、", symptomNames))
-                       .append(" 的疾病有：")
-                       .append(String.join("、", intersectionDiseases))
-                       .append("\n");
-                
-                for (String diseaseName : intersectionDiseases) {
-                    if (!processedDiseases.contains(diseaseName)) {
-                        String diseaseInfo = getDiseaseFullInfo(diseaseName);
-                        if (!diseaseInfo.isEmpty()) {
-                            context.append(diseaseInfo).append("\n");
-                            processedDiseases.add(diseaseName);
+                if (intersectionDiseases.size() > MAX_DISEASES) {
+                    context.append("【疾病列表】可能的疾病包括：")
+                           .append(String.join("、", intersectionDiseases))
+                           .append("\n");
+                } else {
+                    for (String diseaseName : intersectionDiseases) {
+                        if (!processedDiseases.contains(diseaseName)) {
+                            String diseaseInfo = getDiseaseFullInfo(diseaseName);
+                            if (!diseaseInfo.isEmpty()) {
+                                context.append(diseaseInfo).append("\n");
+                                processedDiseases.add(diseaseName);
+                            }
                         }
                     }
                 }

@@ -26,7 +26,7 @@ public class IntentRecognitionService {
     
     private static final String OLLAMA_API_URL = "http://localhost:11434/api/generate";
     private static final String MODEL_NAME = "medic_qwen0.6b";
-    private static final float TEMPERATURE = 0.2f;
+    private static final float TEMPERATURE = 0.3f;
 
     public IntentRecognitionResult recognizeIntent(String userInput) {
         try {
@@ -91,8 +91,6 @@ public class IntentRecognitionService {
             "患者问题：肺炎应该吃什么药？\n" +
             "{\"intent\": \"询问用药建议\", \"entities\": [{\"type\": \"疾病\", \"value\": \"肺炎\"}]}\n\n" +
             "患者问题：糖尿病有什么并发症？\n" +
-            "{\"intent\": \"询问并发疾病\", \"entities\": [{\"type\": \"疾病\", \"value\": \"糖尿病\"}]}\n\n" +
-            "患者问题：肺炎有什么并发疾病？\n" +
             "{\"intent\": \"询问并发疾病\", \"entities\": [{\"type\": \"疾病\", \"value\": \"肺炎\"}]}\n\n" +
             "患者问题：神经内科属于什么科室？\n" +
             "{\"intent\": \"询问所属科室\", \"entities\": [{\"type\": \"科室\", \"value\": \"神经内科\"}]}\n\n" +
