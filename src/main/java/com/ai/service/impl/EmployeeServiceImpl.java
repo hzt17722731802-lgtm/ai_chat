@@ -48,6 +48,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public Employee getOne(LambdaQueryWrapper<Employee> wrapper) {
+        return employeeMapper.selectOne(wrapper);
+    }
+
+    @Override
     public String add(Employee employee) {
         employee.setCreateTime(LocalDateTime.now());
         employee.setUpdateTime(LocalDateTime.now());
